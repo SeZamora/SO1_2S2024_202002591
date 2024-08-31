@@ -1,0 +1,1 @@
+savedcmd_/home/zamora/Documentos/Tareas/Sopes1/Proyecto1/Kernel/Module.symvers :=  scripts/mod/modpost -M -m -a      -o /home/zamora/Documentos/Tareas/Sopes1/Proyecto1/Kernel/Module.symvers -T /home/zamora/Documentos/Tareas/Sopes1/Proyecto1/Kernel/modules.order -i Module.symvers -e 

@@ -1,0 +1,1 @@
+savedcmd_/home/zamora/Documentos/Tareas/Sopes1/Proyecto1/Kernel/sysinfo_202002591.mod := printf '%s\n'   sysinfo_202002591.o | awk '!x[$$0]++ { print("/home/zamora/Documentos/Tareas/Sopes1/Proyecto1/Kernel/"$$0) }' > /home/zamora/Documentos/Tareas/Sopes1/Proyecto1/Kernel/sysinfo_202002591.mod
