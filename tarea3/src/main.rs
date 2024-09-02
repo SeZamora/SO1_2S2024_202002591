@@ -116,7 +116,7 @@ fn analyzer( system_info:  SystemInfo) {
 
 fn main() {
     let system_info: Result<SystemInfo, _>;
-    let json_str = read_proc_file("sysinfo_202002591").unwrap();
+    let json_str = read_proc_file("sysinfo_2000").unwrap();
     system_info = parse_proc_to_struct(&json_str);
     match system_info {
         Ok(info) => {
