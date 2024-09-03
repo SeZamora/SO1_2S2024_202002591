@@ -71,8 +71,8 @@ static int sysinfo_show(struct seq_file *m, void *v) {
 
             seq_printf(m, "    {\n");
             seq_printf(m, "      \"PID\": %d,\n", task->pid);
-            seq_printf(m, "      \"Nombre\": \"%s\",\n", container_id);
-            seq_printf(m, "      \"Linea de Comando\": \"%s\",\n", task->comm);
+            seq_printf(m, "      \"Nombre\": \"%s\",\n", task->comm);
+            seq_printf(m, "      \"Linea de Comando\": \"%s\",\n", container_id);
             seq_printf(m, "      \"Vsz\": %lu,\n", vsize);
             seq_printf(m, "      \"Rss\": %lu,\n", rss);
             seq_printf(m, "      \"Memoria Usada\": %lu.%02lu,\n", mem_usage / 100, mem_usage % 100);

@@ -39,8 +39,10 @@ struct Process {
 #[derive(Debug, Serialize, Clone)]
 struct LogProcess {
     pid: u32,
-    container_id: String,
     name: String,
+    cmd_line: String,
+    vsz: u64,
+    rss: u64,
     memory_usage: f64,
     cpu_usage: f64,
 }
@@ -48,7 +50,7 @@ struct LogProcess {
 
 impl Process {
     fn get_container_id(&self) -> &str {
-        &self.name
+        &self.cmd_line
     }
 }
 
@@ -80,13 +82,44 @@ fn kill_container(id: &str) -> std::process::Output {
     output
 }
 
+fn run_docker_logs() -> std::process::Output {
+    let  output = std::process::Command::new("sudo")
+        .arg("docker")
+        .arg("run")
+        .arg("-d")
+        .arg("-v")
+        .arg("/var/logs:/app/logs")
+        .arg("-p")
+        .arg("8000:8000")
+        .arg("admin_log")
+        .output()
+        .expect("failed to execute process");
+
+    if output.status.success() {
+        println!("Container started successfully!");
+    } else {
+        eprintln!("Error starting container: {:?}", output);
+    }
+
+    output
+}
+
 fn enviar_logs(logs: &[LogProcess]) -> Result<(), reqwest::Error> {
     let client = reqwest::blocking::Client::new();
     let res = client.post("http://localhost:8000/logs")
-        .json(&logs)  // Serializa el vector de logs a JSON
+        .json(&logs)  
         .send()?;
 
     println!("Enviando logs: {:?}", res);
+    Ok(())
+}
+
+fn graficar_logs()-> Result<(), reqwest::Error> {
+    let client = reqwest::blocking::Client::new();
+    let res = client.get("http://localhost:8000/graficar")
+        .send()?;
+
+    println!("Graficando logs: {:?}", res);
     Ok(())
 }
 
@@ -131,7 +164,7 @@ fn analyzer( system_info:  SystemInfo) {
 
 
     for process in &processes_list {
-        if process.memory_usage > 5.00 || process.cpu_usage > 100.00 {
+        if process.memory_usage > 5.00 || process.cpu_usage > 30.00 {
             highest_list.push(process);
         }else {
             lowest_list.push(process);
@@ -158,8 +191,10 @@ fn analyzer( system_info:  SystemInfo) {
         for process in lowest_list.iter().skip(3) {
             let log_process = LogProcess {
                 pid: process.pid,
-                container_id: process.get_container_id().to_string(),
-                name: process.name.clone(),
+                name: process.get_container_id().to_string(),
+                cmd_line: process.cmd_line.clone(),
+                vsz: process.vsz,
+                rss: process.rss,
                 memory_usage: process.memory_usage,
                 cpu_usage: process.cpu_usage,
             };
@@ -175,8 +210,10 @@ fn analyzer( system_info:  SystemInfo) {
         for process in highest_list.iter().take(highest_list.len() - 2) {
             let log_process = LogProcess {
                 pid: process.pid,
-                container_id: process.get_container_id().to_string(),
-                name: process.name.clone(),
+                name: process.get_container_id().to_string(),
+                cmd_line: process.cmd_line.clone(),
+                vsz: process.vsz,
+                rss: process.rss,
                 memory_usage: process.memory_usage,
                 cpu_usage: process.cpu_usage
             };
@@ -199,7 +236,7 @@ fn analyzer( system_info:  SystemInfo) {
 
     println!("Contenedores matados");
     for process in log_proc_list {
-        println!("PID: {}, Name: {}, Container ID: {}, Memory Usage: {}, CPU Usage: {} ", process.pid, process.name, process.container_id,  process.memory_usage, process.cpu_usage);
+        println!("PID: {}, Name: {}, Memory Usage: {}, CPU Usage: {} ", process.pid, process.name,  process.memory_usage, process.cpu_usage);
     }
 
     println!("------------------------------");
@@ -216,6 +253,7 @@ fn main() {
         r.store(false, Ordering::SeqCst);
     }).expect("Error setting Ctrl-C handler");
 
+    let _output = run_docker_logs();
     while running.load(Ordering::SeqCst) {
         // Lógica principal del programa
         let system_info: Result<SystemInfo, _>;
@@ -232,6 +270,10 @@ fn main() {
         }
 
         std::thread::sleep(std::time::Duration::from_secs(10));
+    }
+    match graficar_logs() {
+        Ok(_) => println!("Logs enviados correctamente"),
+        Err(e) => eprintln!("Error al enviar logs: {}", e),
     }
     eliminar_cronjob();
     println!("Servicio finalizado correctamente.");
