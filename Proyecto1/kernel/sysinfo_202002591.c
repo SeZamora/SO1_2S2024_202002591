@@ -17,13 +17,13 @@ MODULE_VERSION("1.0");
 #define PROC_NAME "sysinfo_202002591"
 
 static char* extract_container_id(const char *cgroup_name) {
-    char *id = kmalloc(12, GFP_KERNEL); // Reservar espacio para el ID (12 caracteres)
+    char *id = kmalloc(12, GFP_KERNEL); 
     if (!id)
         return NULL;
 
     // Copiar el ID del cgroup
-    strncpy(id, cgroup_name + 7, 12); // Copiar desde la posición 7 (después de "docker-")
-    id[11] = '\0'; // Asegurarse de que sea una cadena nula terminada
+    strncpy(id, cgroup_name + 7, 12); 
+    id[11] = '\0'; 
 
     return id;
 }
@@ -79,7 +79,7 @@ static int sysinfo_show(struct seq_file *m, void *v) {
             seq_printf(m, "      \"Cpu Usado\": %lu.%02lu\n", cpu_usage / 100, cpu_usage % 100);
             seq_printf(m, "    }");
 
-            kfree(container_id); // Liberar la memoria del ID del contenedor
+            kfree(container_id); 
         }
     }
 

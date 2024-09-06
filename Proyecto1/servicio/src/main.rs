@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use ctrlc;
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct SystemInfo {
@@ -124,6 +125,26 @@ fn graficar_logs()-> Result<(), reqwest::Error> {
 }
 
 
+fn enviar_ram(ram_total: u64, ram_usada: u64, ram_libre: u64) -> Result<(), reqwest::Error> {
+    let client = reqwest::blocking::Client::new();
+    
+    let mut ram_data = HashMap::new();
+    ram_data.insert("total_ram", ram_total as i64);  
+    ram_data.insert("usage_ram", ram_usada as i64);  
+    ram_data.insert("free_ram", ram_libre as i64);
+
+    println!("{:?}", ram_data);
+
+    let res = client.post("http://localhost:8000/ram")
+        .json(&ram_data)
+        .send()?;
+
+    // Imprimir el cuerpo de la respuesta para depurar
+    let res_text = res.text()?;
+    println!("Enviando RAM: {:?}", res_text);
+    Ok(())
+}
+
 
 fn read_proc_file(file_name: &str) -> io::Result<String> {
     let path  = Path::new("/proc").join(file_name);
@@ -155,6 +176,10 @@ fn analyzer( system_info:  SystemInfo) {
 
     let mut log_proc_list: Vec<LogProcess> = Vec::new();
 
+    let total_ram = system_info.total_ram;
+    let free_ram = system_info.free_ram;
+    let ram_usage = system_info.ram_usage;
+
     let mut processes_list: Vec<Process> = system_info.processes;
 
     let mut highest_list: Vec<&Process> = Vec::new();
@@ -170,6 +195,11 @@ fn analyzer( system_info:  SystemInfo) {
             lowest_list.push(process);
         }
     }
+    print!("------------------------------");
+    println!("Total RAM: {}", total_ram);
+    println!("Free RAM: {}", free_ram);
+    println!("RAM Usage: {}", ram_usage);
+    print!("------------------------------");
 
 
     // Hacemos un print de los contenedores de bajo consumo en las listas.
@@ -184,6 +214,7 @@ fn analyzer( system_info:  SystemInfo) {
     for process in &highest_list {
         println!("PID: {}, Name: {}, Icontainer ID {}, Memory Usage: {}, CPU Usage: {}", process.pid, process.name,process.get_container_id(),process.memory_usage, process.cpu_usage);
     }
+
 
     println!("------------------------------");
 
@@ -224,6 +255,11 @@ fn analyzer( system_info:  SystemInfo) {
             let _output = kill_container(&process.get_container_id());
 
         }
+    }
+
+    match enviar_ram(total_ram, ram_usage, free_ram) {
+        Ok(_) => println!("Info ram enviado correctamente"),
+        Err(e) => eprintln!("Error al enviar info ram: {}", e),
     }
 
     if !log_proc_list.is_empty() {
@@ -272,8 +308,8 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_secs(10));
     }
     match graficar_logs() {
-        Ok(_) => println!("Logs enviados correctamente"),
-        Err(e) => eprintln!("Error al enviar logs: {}", e),
+        Ok(_) => println!("Graficas realizadas correctamente"),
+        Err(e) => eprintln!("Error en la realizacion de las graficas: {}", e),
     }
     eliminar_cronjob();
     println!("Servicio finalizado correctamente.");
