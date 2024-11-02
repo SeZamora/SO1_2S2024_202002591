@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: disciplina-atletismo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: disciplina-atletismo
+  template:
+    metadata:
+      labels:
+        app: disciplina-atletismo
+    spec:
+      containers:
+        - name: grpc-server
+          image: sezamora2/disciplina-atletismo:latest
+          ports:
+            - containerPort: 50053
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: disciplina-atletismo
+spec:
+  type: ClusterIP
+  ports:
+    - port: 50053
+      targetPort: 50053
+      name: grpc
+  selector:
+    app: disciplina-atletismo

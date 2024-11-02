@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-winners
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer-winners
+  template:
+    metadata:
+      labels:
+        app: consumer-winners
+    spec:
+      containers:
+        - name: consumer-winners
+          image: sezamora2/consumidor-ganador:latest
+          ports:
+            - containerPort: 8080

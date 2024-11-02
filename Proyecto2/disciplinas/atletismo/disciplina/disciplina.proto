@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package disciplina;
+
+message AlumnoRequest {
+  string nombre = 1;
+  int32 edad = 2;
+  string facultad = 3;
+  int32 disciplina = 4;
+}
+
+message AlumnoResponse {
+  string mensaje = 1;
+}
+
+service DisciplinaService {
+  rpc ProcesarAlumno (AlumnoRequest) returns (AlumnoResponse);
+}

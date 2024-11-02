@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: disciplina-boxeo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: disciplina-boxeo
+  template:
+    metadata:
+      labels:
+        app: disciplina-boxeo
+    spec:
+      containers:
+        - name: grpc-server
+          image: sezamora2/disciplina-boxeo:latest
+          ports:
+            - containerPort: 50052
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: disciplina-boxeo
+spec:
+  type: ClusterIP
+  ports:
+    - port: 50054
+      targetPort: 50054
+      name: grpc
+  selector:
+    app: disciplina-boxeo

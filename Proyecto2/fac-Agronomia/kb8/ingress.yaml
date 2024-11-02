@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grpc-client-ingress
+spec:
+  ingressClassName: nginx  
+  rules:
+    - http:
+        paths:
+          - path: /ingenieria
+            pathType: Prefix
+            backend:
+              service:
+                name: grpc-rust  
+                port:
+                  number: 8080 
+
+          - path: /agronomia
+            pathType: Prefix
+            backend:
+              service:
+                name: grpc-app 
+                port:
+                  number: 8080 
